@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/limbs713/BE/internal/rag"
 )
 
 type reviewRequest struct {
@@ -17,8 +15,8 @@ type reviewRequest struct {
 }
 
 // Review 는 광고 문구를 받아 RAG 검토(유사 주제 + 전례 + LLM 판정) 결과를 반환합니다.
-// rag.Service 의존성을 클로저로 주입받습니다.
-func Review(svc *rag.Service) gin.HandlerFunc {
+// Service 의존성을 클로저로 주입받습니다.
+func Review(svc Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req reviewRequest
 		if err := c.ShouldBindJSON(&req); err != nil {

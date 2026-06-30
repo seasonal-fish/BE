@@ -15,6 +15,8 @@ const (
 	// pgvector로 가져올 후보 풀 크기. 전체 주제 수(현재 96)보다 크게 잡아
 	// 융합 랭킹이 누락 없이 동작하도록 함.
 	poolSize = 200
+	// relatedK 는 보조 임베딩 테이블(issues/slang/mim)에서 가져올 유사 항목 수.
+	relatedK = 5
 )
 
 // fuseRank 는 pgvector가 벡터순으로 준 후보(cands)에 키워드(RRF)와 날짜 부스트를
@@ -49,6 +51,9 @@ func fuseRank(cands []topicData, origQuery string, k int) []Topic {
 		rrf := 1/float64(60+vrank[i]+1) + 1/float64(60+krank[i]+1)
 		if dates[cands[i].EventDate] {
 			rrf += 1.0 // 날짜 일치 강한 부스트
+		}
+		if hasExactTriggerMatch(cands[i].triggers, origQuery) {
+			rrf += 1.0 // 트리거 표현이 원문에 그대로 등장하면 강한 부스트(아이코닉 문구 surfacing)
 		}
 		final[i] = rrf
 	}
@@ -111,6 +116,19 @@ func dateSet(q string) map[string]bool {
 		add(m[1], m[2])
 	}
 	return out
+}
+
+// hasExactTriggerMatch 는 trigger_expressions 중 하나라도 원문에 '그대로' 등장하는지 봅니다.
+// 짧은 단어 오매치를 막기 위해 3글자(rune) 이상 트리거만 본다 — fuseRank 에서 강한 부스트의 트리거.
+// 아이코닉 문구('책상을 탁', '박종철' 등)가 긴 광고 문장에 묻혀 벡터 유사도가 낮아도 상위에 올린다.
+func hasExactTriggerMatch(triggers []string, q string) bool {
+	for _, ph := range triggers {
+		ph = strings.TrimSpace(ph)
+		if utf8.RuneCountInString(ph) >= 3 && strings.Contains(q, ph) {
+			return true
+		}
+	}
+	return false
 }
 
 // lexScore 는 키워드/제목이 문구에 등장하는 정도를 점수화합니다.

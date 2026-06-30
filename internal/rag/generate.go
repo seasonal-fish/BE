@@ -4,40 +4,40 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
 	"golang.org/x/sync/errgroup"
 )
 
-// Trend 는 sensitive_events.trigger_expressions 를 펼쳐 만든 트렌드어 한 건입니다.
-//   - Tag: '#'을 붙인 표현(예: "#광복절")
-//   - Category: 해당 표현이 속한 카테고리
-//   - Up: 활성도(등장 빈도 기반 의사 점수)
+// Trend 는 mim_terms(유행어/밈) 한 건의 활성도 정보입니다.
+//   - Tag: '#'을 붙인 유행어(예: "#중꺾마")
+//   - Category: mim_terms 에는 카테고리가 없어 항상 빈 문자열
+//   - Definition: 신조어 설명(mim_terms.definition). 툴팁 표기용.
+//   - Up: 활성도 점수(trend_score). 음수(하락세)일 수 있다.
+//   - Rank: trend_score 내림차순 순위(1부터)
+//   - Delta: 최근 7일 평균 검색비율 - 직전 7일 평균(search_ratios_90d 기반). 상승/하락 표기용.
+//   - Ratios: 최근 90일 일별 검색비율(0~100, 단어별 자기 정규화). 활성도 추이 차트용.
 type Trend struct {
-	Tag      string `json:"tag"`
-	Category string `json:"category"`
-	Up       int    `json:"up"`
+	Tag        string  `json:"tag"`
+	Category   string  `json:"category"`
+	Definition string  `json:"definition"`
+	Up         float64 `json:"up"`
+	Rank       int     `json:"rank"`
+	Delta      int     `json:"delta"`
+	Ratios     []int   `json:"ratios"`
 }
 
-// trendingTerms 는 sensitive_events 의 trigger_expressions 배열을 표현 단위로 펼친 뒤,
-// 표현별 등장 횟수(COUNT)를 활성도로 삼아 상위 limit 개를 반환합니다.
-// trigger_expressions 가 NULL/빈 배열인 경우를 방어합니다.
+// trendingTerms 는 mim_terms 를 trend_score 내림차순으로 상위 limit 개 반환합니다.
+// trend_score 를 활성도(Up)로, search_ratios_90d(최근 90일 일별 검색비율)를 추이(Ratios)로 노출하며,
+// Delta 는 추이의 최근 7일 평균과 직전 7일 평균 차이로 산출합니다.
 func (s *store) trendingTerms(ctx context.Context, limit int) ([]Trend, error) {
 	const q = `
-		SELECT expr, category, COUNT(*) AS up
-		FROM (
-			SELECT TRIM(elem) AS expr, COALESCE(category, '') AS category
-			FROM sensitive_events,
-			     LATERAL jsonb_array_elements_text(
-			         COALESCE(trigger_expressions, '[]'::jsonb)
-			     ) AS elem
-			WHERE trigger_expressions IS NOT NULL
-			  AND jsonb_typeof(trigger_expressions) = 'array'
-		) AS t
-		WHERE expr <> ''
-		GROUP BY expr, category
-		ORDER BY up DESC, expr ASC
+		SELECT word, definition, trend_score::float8, search_ratios_90d
+		FROM mim_terms
+		WHERE trend_score IS NOT NULL
+		ORDER BY trend_score DESC, word ASC
 		LIMIT $1`
 	rows, err := s.pool.Query(ctx, q, limit)
 	if err != nil {
@@ -48,29 +48,63 @@ func (s *store) trendingTerms(ctx context.Context, limit int) ([]Trend, error) {
 	var out []Trend
 	for rows.Next() {
 		var (
-			expr     string
-			category string
-			up       int
+			word       string
+			definition string
+			score      float64
+			ratios     []int32
 		)
-		if err := rows.Scan(&expr, &category, &up); err != nil {
+		if err := rows.Scan(&word, &definition, &score, &ratios); err != nil {
 			return nil, fmt.Errorf("트렌드어 스캔 실패: %w", err)
 		}
-		// SQL 에서 TRIM 으로 앞뒤 공백을 이미 제거했다. 내부 공백까지 제거하면
-		// "광복 절"과 "광복절"이 한 태그로 합쳐져 GROUP BY 와 어긋나(count 분산) 버리므로
-		// 여기서는 추가 변형 없이 그대로 '#' 만 부착한다.
-		if expr == "" {
+		if word == "" {
 			continue
 		}
 		out = append(out, Trend{
-			Tag:      "#" + expr,
-			Category: category,
-			Up:       up,
+			Tag:        "#" + word,
+			Definition: definition,
+			Up:         score,
+			// 쿼리가 trend_score DESC 로 정렬되므로 누적 인덱스가 곧 순위(1부터)다.
+			Rank:   len(out) + 1,
+			Delta:  recentDelta(ratios),
+			Ratios: int32sToInts(ratios),
 		})
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("트렌드어 행 순회 실패: %w", err)
 	}
 	return out, nil
+}
+
+// recentDelta 는 90일 추이에서 최근 7일 평균과 직전 7일 평균의 차이를 정수로 반환합니다.
+// 표본이 14개 미만이면 마지막값-첫값(원소가 1개 이하이면 0)으로 대체합니다.
+func recentDelta(ratios []int32) int {
+	n := len(ratios)
+	if n < 14 {
+		if n >= 2 {
+			return int(ratios[n-1]) - int(ratios[0])
+		}
+		return 0
+	}
+	var last, prev float64
+	for _, v := range ratios[n-7:] {
+		last += float64(v)
+	}
+	for _, v := range ratios[n-14 : n-7] {
+		prev += float64(v)
+	}
+	return int(math.Round((last - prev) / 7.0))
+}
+
+// int32sToInts 는 pgx 가 정수배열을 스캔한 []int32 를 JSON/프론트에서 쓰기 좋은 []int 로 변환합니다.
+func int32sToInts(in []int32) []int {
+	if in == nil {
+		return nil
+	}
+	out := make([]int, len(in))
+	for i, v := range in {
+		out[i] = int(v)
+	}
+	return out
 }
 
 // Trends 는 상위 limit 개의 트렌드어를 반환합니다(store 위임).

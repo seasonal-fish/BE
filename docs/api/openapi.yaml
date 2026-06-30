@@ -15,6 +15,8 @@ tags:
     description: OCR 대상 이미지 업로드
   - name: history
     description: 검토 히스토리 조회
+  - name: events
+    description: 민감 사건/연결 전례 조회
   - name: generate
     description: 트렌드어 기반 광고 문구 생성
   - name: knowledge
@@ -204,12 +206,86 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 error: 해당 검토 히스토리를 찾을 수 없습니다
+  /events:
+    get:
+      tags:
+        - events
+      summary: 민감 사건 목록
+      description: >-
+        sensitive_events 를 페이징 조회하고, 각 사건에 연결된 전례(sensitive_issues)
+        건수와 전체 건수를 함께 반환합니다. event_date 내림차순으로 정렬됩니다.
+      operationId: listEvents
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: 페이지 크기(기본 20). 0 이하 또는 비정수면 기본값 사용.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+        - name: offset
+          in: query
+          required: false
+          description: 건너뛸 행 수(기본 0). 음수 또는 비정수면 기본값 사용.
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: 민감 사건 목록과 전체 건수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+        '500':
+          description: 내부 처리 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /events/{id}:
+    get:
+      tags:
+        - events
+      summary: 민감 사건 상세
+      description: id 로 사건 본체와 연결된 논란 전례 목록을 합쳐 반환합니다.
+      operationId: eventDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 민감 사건 ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 사건 상세(연결 전례 포함)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetail'
+        '404':
+          description: 해당 민감 사건을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 해당 민감 사건을 찾을 수 없습니다
+        '500':
+          description: 내부 처리 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /trends:
     get:
       tags:
         - generate
       summary: 트렌드어 목록
-      description: sensitive_events 의 trigger_expressions 를 펼쳐 활성도 상위 N개의 트렌드어를 반환합니다.
+      description: mim_terms(유행어/밈)를 trend_score(활성도) 내림차순 상위 N개로 반환합니다. 각 항목은 신조어 정의, 최근 90일 일별 검색비율 추이(ratios), 전주 대비 변동(delta)을 포함합니다.
       operationId: trends
       parameters:
         - name: limit
@@ -351,7 +427,9 @@ components:
         - highlights
         - rewrite
         - related_topics
-        - precedents
+        - related_issues
+        - related_slang
+        - related_trends
       properties:
         id:
           type: string
@@ -370,14 +448,24 @@ components:
           $ref: '#/components/schemas/Rewrite'
         related_topics:
           type: array
-          description: 융합 검색으로 찾은 관련 민감 주제(top-k)
+          description: sensitive_events 융합 검색(벡터+키워드+날짜)으로 찾은 관련 민감 주제(top-k)
           items:
             $ref: '#/components/schemas/Topic'
-        precedents:
+        related_issues:
           type: array
-          description: 관련 주제에 연결된 실제 논란 전례
+          description: sensitive_issues 벡터 검색으로 찾은 유사 논란 사례
           items:
-            $ref: '#/components/schemas/Precedent'
+            $ref: '#/components/schemas/RelatedItem'
+        related_slang:
+          type: array
+          description: slang_terms 벡터 검색으로 찾은 관련 신조어/은어
+          items:
+            $ref: '#/components/schemas/RelatedItem'
+        related_trends:
+          type: array
+          description: mim_terms 벡터 검색으로 찾은 관련 유행어/밈
+          items:
+            $ref: '#/components/schemas/RelatedItem'
     Verdict:
       type: object
       description: LLM이 내린 위험도 판정
@@ -483,7 +571,6 @@ components:
         - category
         - event_date
         - description
-        - similarity
       properties:
         id:
           type: string
@@ -496,31 +583,28 @@ components:
           description: 사건 일자(MM-DD 등)
         description:
           type: string
-        similarity:
-          type: number
-          format: double
-          description: pgvector 코사인 유사도
-    Precedent:
+    RelatedItem:
       type: object
-      description: 민감 주제에 연결된 실제 논란 사례
+      description: 임베딩 테이블(issues/slang/mim)에서 벡터 유사도로 검색된 한 건
       required:
-        - issue_id
-        - region
+        - source
+        - id
         - title
-        - description
-        - topic_id
       properties:
-        issue_id:
+        source:
           type: string
-        region:
+          description: '출처 테이블(sensitive_issues | slang_terms | mim_terms)'
+        id:
           type: string
         title:
           type: string
-        description:
+          description: 표제(이슈 제목 / 신조어 표현 / 유행어)
+        category:
           type: string
-        topic_id:
+          description: 분류(있는 경우)
+        snippet:
           type: string
-          description: 연결된 주제 ID
+          description: 설명/의미 요약
     HistoryItem:
       type: object
       description: 검토 히스토리 목록의 한 행(UI 바인딩용 축약 뷰)
@@ -599,23 +683,142 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HistoryStatCard'
+    EventListItem:
+      type: object
+      description: 민감 사건 목록의 한 행
+      required:
+        - id
+        - title
+        - category
+        - year
+        - issue_count
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        year:
+          type: string
+          description: event_date(텍스트)에서 추출한 연도(없으면 빈 문자열)
+        issue_count:
+          type: integer
+          description: 이 사건에 연결된 논란 전례(sensitive_issues) 건수
+          minimum: 0
+    EventsResponse:
+      type: object
+      required:
+        - events
+        - total
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventListItem'
+        total:
+          type: integer
+          description: 전체 민감 사건 건수
+    EventIssue:
+      type: object
+      description: >-
+        사건에 연결된 논란 전례 한 건. FE 기대 필드(brand/campaign/copy/level/result)에 맞춰
+        키를 노출하되, 운영 DB에 원천이 없는 값은 빈 문자열로 둔다.
+      required:
+        - id
+        - brand
+        - campaign
+        - year
+        - level
+        - copy
+        - result
+      properties:
+        id:
+          type: string
+        brand:
+          type: string
+          description: 브랜드명(title 매핑)
+        campaign:
+          type: string
+          description: 캠페인명. 원천이 없어 빈 문자열(FE에서 정합).
+        year:
+          type: string
+          description: issue_date 의 연도(없으면 빈 문자열)
+        level:
+          type: string
+          description: 위험 등급. 원천이 없어 빈 문자열.
+        copy:
+          type: string
+          description: 사건/광고 설명(description 매핑)
+        result:
+          type: string
+          description: 결과. 원천이 없어 빈 문자열.
+    EventDetail:
+      type: object
+      description: 민감 사건 상세(연결 전례 포함)
+      required:
+        - id
+        - title
+        - year
+        - category
+        - description
+        - issues
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        year:
+          type: string
+          description: event_date 에서 추출한 연도(없으면 빈 문자열)
+        category:
+          type: string
+        description:
+          type: string
+        issues:
+          type: array
+          description: 이 사건에 연결된 논란 전례 목록(없으면 빈 배열)
+          items:
+            $ref: '#/components/schemas/EventIssue'
     Trend:
       type: object
-      description: trigger_expressions 를 펼쳐 만든 트렌드어 한 건
+      description: mim_terms(유행어/밈) 한 건의 활성도 정보
       required:
         - tag
         - category
+        - definition
         - up
+        - rank
+        - delta
+        - ratios
       properties:
         tag:
           type: string
-          description: "'#'을 붙인 표현(예 #광복절)"
+          description: "'#'을 붙인 유행어(예 #중꺾마)"
         category:
           type: string
-          description: 해당 표현이 속한 카테고리
+          description: mim_terms 에는 카테고리가 없어 항상 빈 문자열
+        definition:
+          type: string
+          description: 신조어 설명(mim_terms.definition). 툴팁 표기용.
         up:
+          type: number
+          format: double
+          description: 활성도 점수(trend_score). 음수(하락세)일 수 있다.
+        rank:
           type: integer
-          description: 활성도(등장 빈도 기반 의사 점수)
+          description: trend_score 내림차순 순위(1부터)
+          minimum: 1
+        delta:
+          type: integer
+          description: 최근 7일 평균 검색비율 - 직전 7일 평균(search_ratios_90d 기반). 상승/하락 표기용.
+        ratios:
+          type:
+            - array
+            - 'null'
+          description: 최근 90일 일별 검색비율(0~100, 단어별 자기 정규화). 활성도 추이 차트용. 데이터 없으면 null.
+          items:
+            type: integer
     TrendsResponse:
       type: object
       required:
@@ -684,39 +887,55 @@ components:
             $ref: '#/components/schemas/GenerateCandidate'
     SyncResult:
       type: object
-      description: 지식베이스 동기화 결과 요약
+      description: 지식베이스 동기화 결과 요약. 임베딩 대상 전 테이블의 NULL 행만 채운다.
       required:
         - synced
-        - total_events
+        - by_table
         - last_synced_at
       properties:
         synced:
           type: integer
-          description: 이번에 임베딩을 채운 행 수
-        total_events:
-          type: integer
-          description: sensitive_events 전체 건수
+          description: 이번에 임베딩을 채운 전체 행 수(전 테이블 합계)
+        by_table:
+          type: object
+          description: 테이블별 신규 임베딩 건수
+          additionalProperties:
+            type: integer
+          example:
+            sensitive_events: 0
+            sensitive_issues: 0
+            slang_terms: 0
+            mim_terms: 5
         last_synced_at:
           type: string
           description: 마지막 동기화 시각(RFC3339)
           format: date-time
     KnowledgeStatus:
       type: object
-      description: 현재 지식베이스 상태
+      description: 현재 지식베이스 상태(임베딩 테이블별 적재 현황)
       required:
         - last_synced_at
-        - total_events
-        - total_issues
+        - tables
       properties:
         last_synced_at:
           type: string
           description: 마지막 동기화 시각(RFC3339). 동기화 이력이 없으면 빈 문자열
-        total_events:
-          type: integer
-          description: sensitive_events 전체 건수
-        total_issues:
-          type: integer
-          description: sensitive_issues 전체 건수
+        tables:
+          type: object
+          description: 임베딩 테이블별 전체/임베딩완료 건수
+          additionalProperties:
+            type: object
+            required:
+              - total
+              - embedded
+            properties:
+              total:
+                type: integer
+              embedded:
+                type: integer
+          example:
+            sensitive_events: { total: 96, embedded: 96 }
+            mim_terms: { total: 688, embedded: 0 }
     ErrorResponse:
       type: object
       required:

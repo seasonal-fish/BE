@@ -50,6 +50,23 @@ func TestSafetyLabel(t *testing.T) {
 	}
 }
 
+func TestSelectByEvidence(t *testing.T) {
+	items := []string{"a", "b", "c"}
+	// 핸들은 prefix + (인덱스+1): a=T1, b=T2, c=T3. 채택한 것만 순서대로 남는다.
+	got := selectByEvidence(items, "T", map[string]bool{"T1": true, "T3": true})
+	if len(got) != 2 || got[0] != "a" || got[1] != "c" {
+		t.Errorf("채택분만 남지 않음: %v", got)
+	}
+	// 채택 없음 → 빈 슬라이스(무관 후보 전부 제거).
+	if got := selectByEvidence(items, "T", map[string]bool{}); len(got) != 0 {
+		t.Errorf("빈 채택인데 남음: %v", got)
+	}
+	// prefix 가 다르면(I) T 핸들과 매칭되지 않는다.
+	if got := selectByEvidence(items, "I", map[string]bool{"T1": true}); len(got) != 0 {
+		t.Errorf("prefix 교차 매칭됨: %v", got)
+	}
+}
+
 func TestStatusLabel(t *testing.T) {
 	cases := []struct {
 		score int
@@ -79,6 +96,86 @@ func TestNormalizeSeverity(t *testing.T) {
 	for _, c := range cases {
 		if got := normalizeSeverity(c.in); got != c.want {
 			t.Errorf("normalizeSeverity(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestSeverityScoreFloor(t *testing.T) {
+	cases := []struct {
+		name string
+		sev  []string
+		want int
+	}{
+		{"하이라이트 없음 → 0", nil, 0},
+		{"낮음만 → 0", []string{"low"}, 0},
+		{"주의 1건 → 34", []string{"needs_review"}, 34},
+		{"주의+낮음 → 34", []string{"low", "needs_review"}, 34},
+		{"위험 포함 → 67", []string{"needs_review", "high", "low"}, 67},
+	}
+	for _, c := range cases {
+		hs := make([]Highlight, len(c.sev))
+		for i, s := range c.sev {
+			hs[i] = Highlight{Severity: s}
+		}
+		if got := severityScoreFloor(hs); got != c.want {
+			t.Errorf("%s: severityScoreFloor = %d, want %d", c.name, got, c.want)
+		}
+	}
+}
+
+func TestClampBand(t *testing.T) {
+	cases := []struct {
+		name          string
+		score, lo, hi int
+		want          int
+	}{
+		{"하한 미만 → 하한", 50, 67, 100, 67},
+		{"상한 초과 → 상한", 150, 67, 100, 100},
+		{"밴드 안 → 그대로", 80, 67, 100, 80},
+		{"하한 경계 → 그대로", 67, 67, 100, 67},
+		{"상한 경계 → 그대로", 100, 67, 100, 100},
+	}
+	for _, c := range cases {
+		if got := clampBand(c.score, c.lo, c.hi); got != c.want {
+			t.Errorf("%s: clampBand(%d,%d,%d) = %d, want %d", c.name, c.score, c.lo, c.hi, got, c.want)
+		}
+	}
+}
+
+func TestComputeScore(t *testing.T) {
+	cases := []struct {
+		name string
+		sev  []string
+		want int
+	}{
+		// 근거 없음 → 0(안전)
+		{"하이라이트 없음 → 0", nil, 0},
+		{"빈 슬라이스 → 0", []string{}, 0},
+		{"알 수 없는 severity만 → 0", []string{"unknown"}, 0},
+		// 낮음 밴드 [1,33]: 15 기준, 추가 low 당 +4
+		{"낮음 1건 → 15", []string{"low"}, 15},
+		{"낮음 2건 → 19", []string{"low", "low"}, 19},
+		{"낮음 6건 → 상한 33", []string{"low", "low", "low", "low", "low", "low"}, 33},
+		// 주의 밴드 [34,66]: 45 기준, 추가 needs_review 당 +6
+		{"주의 1건 → 45", []string{"needs_review"}, 45},
+		{"주의 2건 → 51", []string{"needs_review", "needs_review"}, 51},
+		{"주의 5건 → 상한 66", []string{"needs_review", "needs_review", "needs_review", "needs_review", "needs_review"}, 66},
+		{"주의 우선(낮음 무시) → 45", []string{"needs_review", "low", "low"}, 45},
+		// 위험 밴드 [67,100]: 75 기준, 추가 high 당 +8, 동반 needs_review 당 +3(최대 3)
+		{"위험 1건 → 75", []string{"high"}, 75},
+		{"위험 2건 → 83", []string{"high", "high"}, 83},
+		{"위험 1 + 주의 1 → 78", []string{"high", "needs_review"}, 78},
+		{"위험 1 + 주의 5(동반 상한 3) → 84", []string{"high", "needs_review", "needs_review", "needs_review", "needs_review", "needs_review"}, 84},
+		{"위험 5건 → 상한 100", []string{"high", "high", "high", "high", "high"}, 100},
+		{"위험 우선(낮음 무시) → 75", []string{"high", "low", "low"}, 75},
+	}
+	for _, c := range cases {
+		hs := make([]Highlight, len(c.sev))
+		for i, s := range c.sev {
+			hs[i] = Highlight{Severity: s}
+		}
+		if got := computeScore(hs); got != c.want {
+			t.Errorf("%s: computeScore = %d, want %d", c.name, got, c.want)
 		}
 	}
 }

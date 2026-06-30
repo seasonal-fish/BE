@@ -12,7 +12,7 @@ import (
 
 // Trends 는 트렌드어 상위 N개를 반환합니다. (GET /trends)
 // limit 쿼리 파라미터로 개수를 조절하며 기본값은 12입니다.
-func Trends(svc *rag.Service) gin.HandlerFunc {
+func Trends(svc Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limit := 12
 		if raw := c.Query("limit"); raw != "" {
@@ -35,7 +35,7 @@ func Trends(svc *rag.Service) gin.HandlerFunc {
 }
 
 // Generate 는 제품/톤/트렌드어로 광고 문구 후보를 생성하고 자동 검토 결과와 함께 반환합니다. (POST /generate)
-func Generate(svc *rag.Service) gin.HandlerFunc {
+func Generate(svc Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req rag.GenerateRequest
 		if err := c.ShouldBindJSON(&req); err != nil {

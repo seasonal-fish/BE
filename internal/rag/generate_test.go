@@ -1,6 +1,9 @@
 package rag
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestSafetyNote(t *testing.T) {
 	tests := []struct {
@@ -40,5 +43,66 @@ func TestSafetyNote(t *testing.T) {
 				t.Errorf("safetyNote(%+v) = %q, want %q", tt.v, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestRecentDelta(t *testing.T) {
+	tests := []struct {
+		name   string
+		ratios []int32
+		want   int
+	}{
+		{
+			name:   "14개 이상 상승: 최근7평균(10)-직전7평균(0)",
+			ratios: []int32{0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 10},
+			want:   10,
+		},
+		{
+			name:   "14개 이상 하락: 음수 델타",
+			ratios: []int32{10, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0},
+			want:   -10,
+		},
+		{
+			name:   "14개 이상 반올림: (4-0)/7=0.57→1",
+			ratios: []int32{0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0},
+			want:   1,
+		},
+		{
+			name:   "14개 미만(2개 이상): 마지막-처음",
+			ratios: []int32{5, 20},
+			want:   15,
+		},
+		{
+			name:   "원소 1개: 0",
+			ratios: []int32{42},
+			want:   0,
+		},
+		{
+			name:   "빈 슬라이스: 0",
+			ratios: nil,
+			want:   0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := recentDelta(tt.ratios); got != tt.want {
+				t.Errorf("recentDelta(%v) = %d, want %d", tt.ratios, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestInt32sToInts(t *testing.T) {
+	// nil 입력은 nil 그대로(JSON 에서 null). 빈 슬라이스와 구분된다.
+	if got := int32sToInts(nil); got != nil {
+		t.Errorf("int32sToInts(nil) = %v, want nil", got)
+	}
+	// 빈(non-nil) 슬라이스는 빈 non-nil 슬라이스로 유지.
+	if got := int32sToInts([]int32{}); got == nil || len(got) != 0 {
+		t.Errorf("int32sToInts([]) = %v, want 빈 non-nil 슬라이스", got)
+	}
+	// 정상: 원소별 int 변환.
+	if got := int32sToInts([]int32{1, 2, 3}); !reflect.DeepEqual(got, []int{1, 2, 3}) {
+		t.Errorf("int32sToInts([1 2 3]) = %v, want [1 2 3]", got)
 	}
 }

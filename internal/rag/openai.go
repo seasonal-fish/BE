@@ -7,25 +7,36 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
 const (
 	embedModel = "text-embedding-3-small" // 1536차원
-	chatModel  = "gpt-4o-mini"
 	openAIBase = "https://api.openai.com/v1"
 )
+
+// chatModel 은 판정/생성에 쓰는 채팅 모델(기본 gpt-5.4-mini). 환경변수 OPENAI_CHAT_MODEL 로 교체 가능.
+// 예: OPENAI_CHAT_MODEL=gpt-4o-mini
+var chatModel = func() string {
+	if m := os.Getenv("OPENAI_CHAT_MODEL"); m != "" {
+		return m
+	}
+	return "gpt-5.4-mini"
+}()
 
 // openAIClient 는 OpenAI 임베딩/채팅 API를 호출하는 얇은 래퍼입니다.
 type openAIClient struct {
 	apiKey string
+	base   string // API 베이스 URL. 테스트에서 스텁 서버로 주입할 수 있도록 필드로 둔다.
 	http   *http.Client
 }
 
 func newOpenAIClient(apiKey string) *openAIClient {
 	return &openAIClient{
 		apiKey: apiKey,
-		http:   &http.Client{Timeout: 30 * time.Second},
+		base:   openAIBase,
+		http:   &http.Client{Timeout: 30 * time.Second}, // 호출당 실측 ~2~4s(gpt-5.4-mini). 30s면 꼬리+여유 충분, 행은 빨리 실패
 	}
 }
 
@@ -34,7 +45,7 @@ func (c *openAIClient) post(ctx context.Context, path string, body any, out any)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openAIBase+path, bytes.NewReader(buf))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.base+path, bytes.NewReader(buf))
 	if err != nil {
 		return err
 	}
@@ -96,7 +107,7 @@ func (c *openAIClient) Embed(ctx context.Context, text string) ([]float32, error
 	return vecs[0], nil
 }
 
-// chat 은 gpt-4o-mini에 system/user 프롬프트를 보내고 content를 반환합니다.
+// chat 은 chatModel(기본 gpt-5.4-mini)에 system/user 프롬프트를 보내고 content를 반환합니다.
 // jsonMode=true면 JSON 객체 응답을 강제합니다.
 func (c *openAIClient) chat(ctx context.Context, system, user string, jsonMode bool) (string, error) {
 	body := map[string]any{

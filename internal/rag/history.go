@@ -141,7 +141,7 @@ func (s *Service) HistoryStats(ctx context.Context) ([]HistoryStatCard, error) {
 	}
 
 	cards := []HistoryStatCard{
-		{Label: "평균 응답", Value: fmt.Sprintf("%.1f", avgSeconds), Unit: "초", Sub: "DB 우선 + RAG fallback"},
+		{Label: "평균 응답", Value: fmt.Sprintf("%.1f", avgSeconds), Unit: "초", Sub: ""},
 		{Label: "총 검토", Value: fmt.Sprintf("%d", total), Unit: "건", Sub: ""},
 		{Label: "위험 검출", Value: fmt.Sprintf("%.0f", riskRatio), Unit: "%", Sub: ""},
 	}

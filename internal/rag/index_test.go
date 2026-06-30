@@ -227,3 +227,68 @@ func TestFuseRank(t *testing.T) {
 		}
 	})
 }
+
+func TestHasExactTriggerMatch(t *testing.T) {
+	tests := []struct {
+		name     string
+		triggers []string
+		query    string
+		want     bool
+	}{
+		{
+			name:     "3글자 이상 트리거가 원문에 그대로 등장",
+			triggers: []string{"박종철"},
+			query:    "오늘 박종철 열사 추모식",
+			want:     true,
+		},
+		{
+			name:     "트리거가 원문에 없으면 false",
+			triggers: []string{"박종철"},
+			query:    "평범한 여름 세일 문구",
+			want:     false,
+		},
+		{
+			name:     "2글자 트리거는 길이 게이트(3 rune)로 무시",
+			triggers: []string{"세월"},
+			query:    "세월 가는 줄 모른다",
+			want:     false,
+		},
+		{
+			name:     "3글자(rune) 경계 트리거는 매칭",
+			triggers: []string{"123"},
+			query:    "abc123def",
+			want:     true,
+		},
+		{
+			name:     "앞뒤 공백은 트리밍 후 매칭",
+			triggers: []string{"  책상을 탁  "},
+			query:    "이 여름, 책상을 탁 치고 떠나는 특가",
+			want:     true,
+		},
+		{
+			name:     "여러 트리거 중 하나라도 매칭되면 true",
+			triggers: []string{"없는문구", "박종철"},
+			query:    "박종철 관련 추모",
+			want:     true,
+		},
+		{
+			name:     "빈 슬라이스는 false",
+			triggers: nil,
+			query:    "아무 문구",
+			want:     false,
+		},
+		{
+			name:     "공백뿐인 트리거는 트리밍 후 길이 0이라 무시",
+			triggers: []string{"   "},
+			query:    "   ",
+			want:     false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := hasExactTriggerMatch(tt.triggers, tt.query); got != tt.want {
+				t.Errorf("hasExactTriggerMatch(%v, %q) = %v, want %v", tt.triggers, tt.query, got, tt.want)
+			}
+		})
+	}
+}

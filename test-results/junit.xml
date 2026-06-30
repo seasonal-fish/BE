@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="138" failures="0" errors="0" time="1.802380">
+	<testsuite tests="0" failures="0" time="0.131000" name="github.com/limbs713/BE/cmd/server" timestamp="2026-06-30T10:30:20+09:00">
+		<properties>
+			<property name="go.version" value="go1.26.4 darwin/arm64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="31" failures="0" time="1.114000" name="github.com/limbs713/BE/internal/handler" timestamp="2026-06-30T10:30:21+09:00">
+		<properties>
+			<property name="go.version" value="go1.26.4 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestUploadImage_Validation/image_필드_없음_→_400" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestUploadImage_Validation/빈_파일_→_400" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestUploadImage_Validation/이미지가_아닌_파일_→_400" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestUploadImage_Validation" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReviewHandler_Success" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReviewHandler_SaveErrorStillOK" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReviewHandler_ServiceError" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHistoryHandler_Success" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHistoryHandler_NilNormalized" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHistoryHandler_Error" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHistoryStatsHandler" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHistoryDetailHandler_Success" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHistoryDetailHandler_NotFound" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHistoryDetailHandler_Error" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestTrendsHandler" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestEventsHandler" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestEventDetailHandler" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestGenerateHandler" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestKnowledgeHandlers" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestHealth_OK" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReview_Validation/invalid_json" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReview_Validation/empty_text" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReview_Validation/blank_text" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReview_Validation/missing_field" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestReview_Validation" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestGenerate_Validation/invalid_json" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestGenerate_Validation/missing_product" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestGenerate_Validation/blank_product" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestGenerate_Validation" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestCORS_Preflight" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/handler" name="TestUnknownRoute_404" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="16" failures="0" time="0.001000" name="github.com/limbs713/BE/internal/image" timestamp="2026-06-30T10:30:21+09:00">
+		<properties>
+			<property name="go.version" value="go1.26.4 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/photo.jpg" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/photo.JPG" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/photo.jpeg" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/photo.JPEG" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/scan.png" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/doc.pdf" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/image.tiff" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/image.gif" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/image.bmp" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/unknown.webp" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/noextension" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat/archive.tar.gz" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestDetectImageFormat" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestNullableTime/zero_time_returns_nil" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestNullableTime/non-zero_time_returns_the_value" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/image" name="TestNullableTime" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="89" failures="0" time="0.001000" name="github.com/limbs713/BE/internal/rag" timestamp="2026-06-30T10:30:21+09:00">
+		<properties>
+			<property name="go.version" value="go1.26.4 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestYearFromDate" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestListEvents_MapsRowsAndCount" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestService_GetEvent_AttachesIssues" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestService_GetEvent_NoIssuesNormalized" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestService_ListEvents_Delegates" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTrendingTerms_AssignsRank" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestGetEvent_NotFound" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestIssuesForEvent_MapsRows" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSafetyNote/안전(score&lt;34)은_advice가_있어도_숨김" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSafetyNote/주의_이상이고_advice_있으면_advice" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSafetyNote/advice_비고_reasons_있으면_첫_사유" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSafetyNote/advice_공백이면_reasons로_폴백" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSafetyNote/주의_이상인데_advice·reasons_모두_없으면_기본_문구" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSafetyNote" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSaveHistory_Insert" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSaveHistory_NilResult" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestListHistory_CountThenList" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestGetHistory_Unmarshals" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestHistoryStats_Cards" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTruncateRunes/빈_문자열" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTruncateRunes/n_이하면_그대로" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTruncateRunes/정확히_n이면_그대로" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTruncateRunes/n_초과면_잘리고_말줄임표" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTruncateRunes/rune_기준(byte_아님)으로_절단" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTruncateRunes/n=0이면_전부_잘림" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTruncateRunes" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestDateSet/한글_월일_표기" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestDateSet/구분자_표기" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestDateSet/여러_날짜_혼합" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestDateSet/범위_밖_날짜는_제외" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestDateSet/날짜_없음" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestDateSet" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestLexScore/구문_전체_일치는_2점" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestLexScore/제목_일치도_점수에_포함" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestLexScore/단어_단위_부분_일치는_1점" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestLexScore/빈_트리거는_무시" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestLexScore/일치_없으면_0점" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestLexScore" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestArgsortDesc/primary_내림차순_정렬" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestArgsortDesc/동점은_secondary_내림차순" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestArgsortDesc/빈_입력" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestArgsortDesc" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestRanks/순서를_순위_역매핑으로_변환" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestRanks/항등_순서" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestRanks" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestFuseRank/빈_후보는_nil_반환" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestFuseRank/k가_후보_수보다_크면_전부_반환" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestFuseRank/상위_k개만_반환" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestFuseRank/날짜_일치_주제가_강하게_부스트됨" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestFuseRank/키워드_일치가_낮은_벡터_후보를_top-k로_끌어올림" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestFuseRank" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSyncKnowledge_BackfillsNullAcrossTables" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestKnowledgeStatus_PerTable" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTrends_DelegatesToStore" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestEmbedBatch_OK" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestEmbedBatch_CountMismatch" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestEmbedBatch_HTTPError" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestEmbed_Single" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestJudge_OK" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestChat_EmptyChoices" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestGenerate_OK" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestGenerate_EmptyCandidates" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestRewrite_OK" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestRewrite_GracefulOnError" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestClampScore" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestScoreToLevel" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSafetyLabel" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestStatusLabel" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestNormalizeSeverity" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSeverityScoreFloor" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestPhraseOffsets/한글_구절_rune_오프셋" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestPhraseOffsets/없는_구절은_ok=false" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestPhraseOffsets/빈_구절은_ok=false" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestPhraseOffsets/중복_구절은_커서로_순차_매칭" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestPhraseOffsets" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestNewReviewID" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestReview_EndToEnd" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestReview_RaisesScoreToSeverityFloor" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestReview_EmbedError" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestGenerate_ReviewsCandidates" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestGenerate_AIError" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSearchVector_MapsRows" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestSearchSimilar_MapsRows" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestTrendingTerms_MapsRows" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestVectorLiteral/기본_벡터" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestVectorLiteral/단일_원소" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestVectorLiteral/빈_벡터" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestVectorLiteral/음수_포함" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/rag" name="TestVectorLiteral" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="2" failures="0" time="0.679000" name="github.com/limbs713/BE/internal/router" timestamp="2026-06-30T10:30:21+09:00">
+		<properties>
+			<property name="go.version" value="go1.26.4 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/limbs713/BE/internal/router" name="TestNew_RegistersHealthAndCORS" time="0.000000"></testcase>
+		<testcase classname="github.com/limbs713/BE/internal/router" name="TestNew_PreflightShortCircuits" time="0.000000"></testcase>
+	</testsuite>
+</testsuites>

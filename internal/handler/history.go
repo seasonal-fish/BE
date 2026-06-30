@@ -13,7 +13,7 @@ import (
 
 // History 는 검토 히스토리 목록을 페이징 조회합니다(GET /history).
 // 쿼리 파라미터 limit(기본 20), offset(기본 0) 을 받습니다.
-func History(svc *rag.Service) gin.HandlerFunc {
+func History(svc Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limit := 20
 		if v := c.Query("limit"); v != "" {
@@ -41,7 +41,7 @@ func History(svc *rag.Service) gin.HandlerFunc {
 }
 
 // HistoryStats 는 히스토리 화면 상단 요약 카드를 반환합니다(GET /history/stats).
-func HistoryStats(svc *rag.Service) gin.HandlerFunc {
+func HistoryStats(svc Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cards, err := svc.HistoryStats(c.Request.Context())
 		if err != nil {
@@ -54,7 +54,7 @@ func HistoryStats(svc *rag.Service) gin.HandlerFunc {
 
 // HistoryDetail 은 id 로 저장된 검토 결과 전체를 반환합니다(GET /history/:id).
 // 없으면 404 를 반환합니다.
-func HistoryDetail(svc *rag.Service) gin.HandlerFunc {
+func HistoryDetail(svc Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		result, err := svc.GetHistory(c.Request.Context(), id)

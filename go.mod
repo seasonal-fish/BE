@@ -5,6 +5,7 @@ go 1.26.4
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/jackc/pgx/v5 v5.10.0
+	github.com/pashagolub/pgxmock/v4 v4.9.0
 	golang.org/x/sync v0.19.0
 )
 

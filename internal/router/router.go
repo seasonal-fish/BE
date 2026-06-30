@@ -27,6 +27,10 @@ func New(ragSvc *rag.Service, imageSvc *image.Service) *gin.Engine {
 	r.GET("/history/stats", handler.HistoryStats(ragSvc))
 	r.GET("/history/:id", handler.HistoryDetail(ragSvc))
 
+	// 민감 사건
+	r.GET("/events", handler.Events(ragSvc))
+	r.GET("/events/:id", handler.EventDetail(ragSvc))
+
 	// 생성
 	r.GET("/trends", handler.Trends(ragSvc))
 	r.POST("/generate", handler.Generate(ragSvc))
