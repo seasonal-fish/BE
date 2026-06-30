@@ -67,11 +67,13 @@ jobs:
             ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            CLOVA_OCR_URL=${{ secrets.CLOVA_OCR_URL }}
+            CLOVA_OCR_SECRET=${{ secrets.CLOVA_OCR_SECRET }}
             EOF
             chmod 600 /home/ec2-user/.env
             cd /home/ec2-user
             aws ecr get-login-password --region ap-northeast-2 \
               | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d
             docker image prune -f
