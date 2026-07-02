@@ -11,7 +11,25 @@ import (
 )
 
 type reviewRequest struct {
-	Text string `json:"text"`
+	Text   string `json:"text"`
+	Source string `json:"source"` // "text"(기본) | "image" | "generate" — 히스토리 분류용
+}
+
+// 허용된 히스토리 소스 값. 그 외 값은 "text" 로 폴백한다.
+var allowedReviewSources = map[string]bool{
+	"text":     true,
+	"image":    true,
+	"generate": true,
+}
+
+// normalizeSource 는 요청의 source 를 허용 목록으로 정규화한다.
+// 빈 값이거나 목록에 없으면 기본값 "text" 를 돌려준다.
+func normalizeSource(s string) string {
+	s = strings.TrimSpace(s)
+	if allowedReviewSources[s] {
+		return s
+	}
+	return "text"
 }
 
 // Review 는 광고 문구를 받아 RAG 검토(유사 주제 + 전례 + LLM 판정) 결과를 반환합니다.
@@ -40,7 +58,7 @@ func Review(svc Service) gin.HandlerFunc {
 		// 응답 후 요청 컨텍스트가 취소될 수 있어 별도의 짧은 타임아웃 컨텍스트를 씁니다.
 		saveCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if err := svc.SaveHistory(saveCtx, result, "text", latencyMs); err != nil {
+		if err := svc.SaveHistory(saveCtx, result, normalizeSource(req.Source), latencyMs); err != nil {
 			log.Printf("검토 히스토리 저장 실패: %v", err)
 		}
 
